@@ -2,3 +2,6 @@
 venv/
 __pycache__/
 .DS_Store
+data_analysis.ipynb
+data_analysis_task_3.ipynb
+Updated.ipynb
