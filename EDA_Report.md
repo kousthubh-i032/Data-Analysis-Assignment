@@ -1,107 +1,128 @@
-# Exploratory Data Analysis (EDA) Report :   
-## Amazon Sales Dataset
+# B2B Business Analysis & Optimization Report
 
-## 1. Project Objective
+## 1. Project Overview
 
-The primary mission of this analysis is to transform raw transaction logs into a **Strategic Growth Roadmap**. By moving beyond basic data cleaning, we have identified high-velocity categories and geographic **power centers**. This report serves as the foundation for **Revenue and Sales Optimization**, focusing on where the business can achieve the highest return on investment.
+The primary objective of this project was to analyze B2B sales data to assess the health of the wholesale channel, identify inefficiencies in inventory management, and propose data-driven strategies for revenue growth. The analysis focused on distinguishing genuine bulk purchasing behavior from lower-value transactions (likely dropshipping) and pinpointing capital trapped in non-performing stock.
+
+By merging sales data with inventory reports, the project aimed to:
+
+- Evaluate the true nature of B2B demand (**Volume vs. Value**)
+- Quantify potential financial uplift from strategic shifts such as **Minimum Order Quantities (MOQs)**
+- Identify **"Dead Stock"** specific to the B2B channel to free up capital
+
+
+---
 
 ## 2. Data Overview & Integrity
 
-Our analysis is built on a robust dataset of **128,975 transactions**. To ensure the integrity and reliability of insights, the following data hygiene steps were performed:
+The analysis was performed using two primary datasets:
 
-- **Standardizing Geographic Data:**  
-  Merged duplicate city entries caused by case-sensitivity and typos.
+1. **Sales Data (`cleaned_data_1.csv`)**  
+   Contains transaction-level details including Order IDs, SKUs, Quantities, and Revenue. A B2B filter was applied to isolate wholesale transactions.
 
-- **Financial Engineering:**  
-  Created the `Total_Revenue` metric to reflect true cash flow beyond simple unit counts.
+2. **Inventory Data (`Sale Report.csv`)**  
+   Provides a snapshot of current stock levels for each SKU.
 
-- **Cleaning:**  
-  Removed redundant system-generated columns to maintain a lean, high-performance data model.
+### Data Integrity Steps & Checks
 
-## 3. Statistical Summary & Core Insights
+- **SKU Standardization:**  
+  Harmonized SKU formats across both datasets (trimmed whitespace, uppercase conversion) to ensure accurate joins.
 
-- **The "Standard" Purchase Pattern:**  
-  Since both the 50th and 75th percentiles for `Qty` are exactly **1**, the vast majority of customers are purchasing single items. This highlights a strong opportunity to deploy **"Frequently Bought Together"** or bundle-based recommendations to increase the average quantity per order toward **2**.
+- **B2B Classification:**  
+  Applied a custom classification function based on sales channel identifiers (e.g., *Wholesale*, *Bulk*) to separate B2B from B2C data.
 
-- **Stable Pricing Sweet Spot:**  
-  The close alignment between the **Mean (₹589)** and **Median (₹568)** order values indicates a highly stable pricing environment. Customers consistently demonstrate comfort within the **₹400–₹800** spending range, clearly defining the platform’s core price-sensitive market segment.
+- **Missing Values:**  
+  Filled `NaN` values in sales and inventory columns with `0` to prevent aggregation errors.
 
-- **Whale Orders (B2B Potential):**  
-  Although the typical order size is small, extreme outliers—**Max Revenue of ₹44,672** and **Max Quantity of 15**—signal the presence of high-value **"whale" customers**. These transactions are likely driven by B2B buyers or boutique owners. Proactively identifying and nurturing these accounts presents a high-impact growth lever with **minimal customer acquisition cost**.
+- **Data Types:**  
+  Explicitly cast Revenue and Quantity fields to numeric types to maintain calculation integrity.
 
-## 4. Revenue Trends: The Pulse of the Business
+---
 
-Revenue behavior is dynamic rather than linear.
+## 3. Key Performance Indicators (KPIs)
 
-- **Everyday Trends:**  
-  Daily revenue trends exhibit multiple spikes, indicating strong responsiveness to short-term triggers such as promotions and weekends.
+The following KPIs summarize the current performance of the B2B channel:
 
-- **The Pricing Lever:**  
-  A strong **0.84 correlation** between `Unit_Price` and `Total_Revenue` reveals a critical truth:  
-  **Growth is driven by value(price), not volume(quatity).**
+| KPI | Value | Insight |
+|----|------|--------|
+| **Total B2B Revenue** | **₹6,17,180.00** | Total revenue generated from wholesale transactions |
+| **Total B2B Orders** | **794** | Total number of B2B transactions |
+| **Average Order Value (AOV)** | **₹777.30** | **Critically low for B2B**, indicating retail-like purchasing behavior |
+| **Hero Category** | **Sets** | Contributes **52.3%** of total B2B revenue |
 
-  To double revenue, it is more efficient to move a customer from a low-value *"Top"* to a high-value *"Set"* than to acquire two separate customers for *"Tops"*.
+---
 
-## 5. Category Trends: 
+## 4. Strategic Insights & Diagnosis
 
-- **The Volume Engine:**  
-  *Kurtas* are the major sold clothes, driving the highest unit sales and ensuring consistent brand visibility.
+### A. The "Fake Wholesale" Phenomenon
 
-- **The Revenue Engine:**  
-  *Sets* and *Western Dresses* are financial heavyweights. Despite lower unit volumes, their higher price points contribute disproportionately to total revenue.
+- **Observation:**  
+  **86%** of B2B orders (683 out of 794) consist of just **one unit**. Only **8.9%** qualify as true bulk orders (>1 unit).
 
-- **Strategic Play:**  
-  Kurtas should be positioned as the **entry product**, strategically funneling customers toward higher-margin *Sets*.
+- **Diagnosis:**  
+  The B2B channel is currently subsidizing retail-like resellers who benefit from wholesale pricing without delivering volume. This increases operational overhead without proportional revenue gain.
 
-## 6. City Trends: Mapping the Volume Powerhouses
+---
 
-Our geographic sales are concentrated in a dominant **Top 5 city tier**, which consumes the majority of logistical capacity:
+### B. "Dead Stock" Capital Trap
 
-- **Bengaluru:** 11,038 units (undisputed volume leader)  
-- **Hyderabad:** 8,284 units  
-- **Mumbai:** 6,576 units  
+- **Observation:**  
+  Significant inventory is locked in SKUs with **zero B2B demand**.
 
-**Concentration Insight:**  
-The fact that the top 10 cities—ranging from Bengaluru to Noida—account for a substantial share of total quantity **(42.2%)** suggests a major opportunity to reduce shipping costs through focused, city-centric inventory placement.
+  **Examples:**
+  - `JNE3405-KR-XXL`: **1,234 units in stock**, **0 B2B sales**
+  - `JNE1525-KR-UDF19BLACK-M`: **1,082 units in stock**, **0 B2B sales**
 
-## 7. Business Model Trend: The B2B Growth Lever
+- **Diagnosis:**  
+  This dead stock ties up working capital, increases storage costs, and limits reinvestment into high-performing SKUs.
 
-The most compelling insight emerges from the contrast between B2C and B2B performance.
+---
 
-### Efficiency Comparison
+### C. Supply Chain Risk: Demand–Supply Mismatch
 
-- **B2C (The Foundation):**  
-  Drives **99.3% of order volume** with an AOV of **₹588.72**.
+- **Observation:**  
+  Identified **14 SKUs** where B2B demand is exceeding allocated inventory levels.
 
-- **B2B (The Multiplier):**  
-  Represents **<1% of orders** but operates at an AOV of **₹708.59**—nearly **20% higher value per shipment**.
+- **Diagnosis:**  
+  High-velocity B2B items face stockout risk. Without inventory ring-fencing or faster replenishment, B2B demand may cannibalize stock needed for higher-margin B2C sales.
 
-### City-Specific B2B "Personalities"
+---
 
-Distinct B2B behaviors emerge across key hubs:
+## 5. Recommended Action Plan
 
-- **New Delhi – The Premium Market:**  
-  Highest B2B AOV (**₹814**), with a clear preference for high-end *Sets* over basic Kurtas.
+### Step 1: Restructure B2B Pricing & Policy (The MOQ Fix)
 
-- **Noida – The Wholesale Hub:**  
-  B2B revenue leader (**₹63,306**), moving the highest number of units and acting as the core bulk ethnic-wear channel.
+- **Action:**  
+  Enforce a **Minimum Order Quantity (MOQ)** of **3–5 units per SKU** to eliminate inefficient single-unit B2B orders.
 
-- **Mumbai – The Trend Setter:**  
-  Dominates B2B *Western Wear*, signaling a more modern and fashion-forward retail partner ecosystem in the West.
+- **Projected Impact:**  
+  Converting just **20%** of single-unit buyers into 3-unit buyers increases:
+  - **AOV by 16%** (₹777 → ₹904)
+  - **Revenue uplift of ~₹1,00,000**
 
-## 8. Conclusion & Strategic Roadmap
+---
 
-The data communicates a clear strategic direction: **5 cities and 2 categories define the backbone of the business.**
+### Step 2: Strategic Inventory Focus
 
-- **Double Down on B2B:**  
-  Sustainable growth does not require millions of new customers. It requires deeper B2B penetration in high-volume hubs like Noida.
+- **Action:**  
+  Prioritize procurement and replenishment for the **Hero Category (Sets)**.
 
-- **Product–City Alignment:**  
-  Move away from generic catalogs.  
-  - Western-focused assortments for **Mumbai**  
-  - Set-focused assortments for **Delhi NCR**
+- **Implementation:**  
+  Deploy **automated low-stock alerts** for the top 20 B2B-performing Set SKUs.
 
-- **Logistical Focus:**  
-  With **Bengaluru** and **Hyderabad** handling the highest shipment volumes, ensuring faster fulfillment in these hubs is critical to protecting volume leadership.
+- **Rationale:**  
+  With over **52%** of B2B revenue coming from this category, stock availability is critical to revenue stability.
 
+---
 
+### Step 3: Active B2B Sales Management
+
+- **Action:**  
+  Actively review **Zero-Sales SKUs** with the sales team.
+
+- **Tactic:**  
+  - Verify presence in B2B catalogs and line sheets  
+  - Present physical samples to key buyers  
+  - Collect feedback to decide between promotion or discontinuation
+
+---
